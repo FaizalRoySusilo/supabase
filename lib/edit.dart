@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/services.dart';
 import 'package:coba/barang.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class EditPage extends StatefulWidget {
   final int id;
@@ -18,7 +19,7 @@ class _EditPageState extends State<EditPage> {
   TextEditingController jumlahController = TextEditingController();
   TextEditingController hargaController = TextEditingController();
   late dynamic db;
-
+  final supabase = Supabase.instance.client;
   @override
   void initState() {
     super.initState();
@@ -35,16 +36,11 @@ class _EditPageState extends State<EditPage> {
   }
 
   void retrieve() async {
-    final List<Map<String, Object?>> barang = await db.query(
-      'barang',
-      where: 'id = ?',
-      whereArgs: [widget.id],
-    );
-
+final response = await supabase.from('barang').select().eq('id', widget.id);
     setState(() {
-      namaController.text = barang[0]['Nama_Barang'].toString();
-      jumlahController.text = barang[0]['Jumlah_Barang'].toString();
-      hargaController.text = barang[0]['Harga_Barang'].toString();
+      namaController.text = response[0]['Nama_Barang'].toString();
+      jumlahController.text = response[0]['Jumlah_Barang'].toString();
+      hargaController.text = response[0]['Harga_Barang'].toString();
     });
   }
 
@@ -59,16 +55,11 @@ class _EditPageState extends State<EditPage> {
         ScaffoldMessenger.of(this.context).showSnackBar(snackBar);
         return;
     }
-    await db.update(
-      'barang',
-      {
-        "Nama_Barang": namaController.text,
-        "Jumlah_Barang": jumlahController.text,
-        "Harga_Barang": hargaController.text,
-      },
-      where: 'id = ?',
-      whereArgs: [widget.id],
-    );
+  final response = await supabase.from('barang').update({
+    "Nama_Barang": namaController.text,
+    "Jumlah_Barang": jumlahController.text,
+    "Harga_Barang": hargaController.text,
+  }).eq('id', widget.id);
     
         Navigator.push(
         this.context,
