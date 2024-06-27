@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:coba/edit.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -17,6 +18,7 @@ class _HomeState extends State<Home> {
   TextEditingController hargaController = TextEditingController();
   late dynamic db = null;
   final dio = Dio();
+  final supabase = Supabase.instance.client;
   List<dynamic> barang = [];
 
   @override
@@ -26,20 +28,20 @@ class _HomeState extends State<Home> {
   }
 
   void retrieve() async {
-    Response response = await dio.get('http://192.168.18.112:8000/api/barang');
+    final data = await supabase.from('barang').select('*');
     setState(() {
-     barang = response.data;
+     this.barang = data;
     });
   }
   void simpan() async{
-    Response response = await dio.post(
-      'http://192.168.18.112:8000/api/barang',
-      data: {
+    await supabase
+    .from('barang')
+    .insert(
+      {
         'Nama_Barang': namaController.text,
         'Jumlah_Barang': jumlahController.text,
         'Harga_Barang': hargaController.text,
-      },
-      );
+      });
       retrieve();
   }
   void save() async {
@@ -62,7 +64,7 @@ class _HomeState extends State<Home> {
 
 
   void delete(id) async{
-    Response response = await dio.delete("http://192.168.18.112:8000/api/barang/${id}");
+    await supabase.from('barang').delete().eq('id', id);
   }
 
 void deleteRow(id) async {
